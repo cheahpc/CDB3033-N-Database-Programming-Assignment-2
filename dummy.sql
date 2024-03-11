@@ -8,6 +8,8 @@ ALTER DATABASE OPEN;
 -- conn pdb_user/user123@localhost:1521/gpdb
 DESC author;
 
+DESC wrote;
+
 DESC publication;
 
 DESC book;
@@ -64,8 +66,11 @@ SELECT
     *
 FROM
     author
-WHERE
-    name = 'Ajit_A._Diwan';
+ORDER BY
+    AID;
+
+-- WHERE
+-- name = 'Ajit_A._Diwan';
 
 SELECT
     *
@@ -88,18 +93,19 @@ WHERE
 SELECT
     *
 FROM
-    -- publication
+ --  publication
+    wrote
  -- book
  -- journal
  -- proceedings
- article
+ --  article
 WHERE
- -- pubid = 'GuravSDB12'; --1
- -- pubid = '0029498'; --16
- -- pubid = 'CheVWOO11'; --16
- -- pubid = 'TaoO09a';--16
- pubid = 'ZouCOZ12';--16
-    -- pubid = 'ZouMCOZ11';
+ --  pubid = 'GuravSDB12'; --1
+ -- pubid = '0029498';
+ -- pubid = 'CheVWOO11';
+ -- pubid = 'TaoO09a';
+    pubid = 'ZouCOZ12';
+-- pubid = 'ZouMCOZ11';
 
 --16
 

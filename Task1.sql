@@ -1,6 +1,43 @@
 CREATE OR REPLACE PROCEDURE print_publication(
     p_author_name IN VARCHAR2
 ) AS
+ -- Additional Cursor for wrote using aorder
+    CURSOR c_wrote_aoder(
+        p_pubid CHAR,
+        p_aoder NUMBER
+    ) IS
+    SELECT
+        aid,
+        pubid,
+        aorder
+    FROM
+        wrote
+    WHERE
+        pubid = p_pubid AND
+        aorder = p_aoder;
+ -- Additional Cursor for wrote using pubid
+    CURSOR c_wrote_pubid(
+        p_pubid CHAR
+    ) IS
+    SELECT
+        aid,
+        pubid,
+        aorder
+    FROM
+        wrote
+    WHERE
+        pubid = p_pubid;
+ -- Additional cursor for author using aid
+    CURSOR c_author_aid(
+        p_aid NUMBER
+    ) IS
+    SELECT
+        aid,
+        name
+    FROM
+        author
+    WHERE
+        aid = p_aid;
  -- 1st cursor - to retrieve author details
     CURSOR c_author IS
     SELECT
@@ -87,18 +124,40 @@ CREATE OR REPLACE PROCEDURE print_publication(
     v_article_count     INTEGER := 0;
     v_book_count        INTEGER := 0;
     v_total_count       INTEGER := 0;
+    v_author_count      INTEGER := 0;
+    v_author_name       VARCHAR2(500);
 BEGIN
- --First, understand the what type of publication the author has written
- -- Step 1: Get Author's Publication Count
+ -- Step 1: Get Author's ID
     FOR v_c_author IN c_author LOOP
+ -- Step 2: Get Author's Publication ID using author id
         FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
- --Step 2: For each publication, loop each type of cursor {book|journal|proceedings|article}
+ --Step 3: Get Publication Details using publication id from each {book|journal|proceedings|article}
             FOR v_c_publications IN c_publications(v_c_wrote.pubid) LOOP
+ --Step 3.1: Get total author count for this publication using publicaction id
+                FOR v_auth_count IN c_wrote_pubid(v_c_publications.pubid) LOOP
+                    v_author_count := v_author_count + 1;
+                END LOOP;
+ --Step 3.2: Using sequential for-loop
+                FOR v_author_no IN 1..v_author_count LOOP
+ -- Step 3.3: Get Author's AID using aorder
+                    FOR v_c_wrote_aoder IN c_wrote_aoder(v_c_publications.pubid, v_author_no) LOOP
+ -- Step 3.4: Get Author's Name using AID
+                        FOR v_c_author_aid IN c_author_aid(v_c_wrote_aoder.aid) LOOP
+                            IF v_author_name IS NULL THEN
+                                v_author_name := v_c_author_aid.name;
+                            ELSE
+                                v_author_name := v_author_name || ', ' || v_c_author_aid.name;
+                            END IF;
+                        END LOOP;
+                    END LOOP;
+                END LOOP;
+
                 v_total_count := v_total_count + 1;
                 DBMS_OUTPUT.PUT_LINE('==================== Publication No: '|| v_total_count || ' ====================');
                 DBMS_OUTPUT.PUT_LINE('Pubid: ' || v_c_wrote.pubid);
                 FOR v_c_book IN c_book(v_c_publications.pubid) LOOP
                     DBMS_OUTPUT.PUT_LINE('Type: ' || 'Book');
+                    DBMS_OUTPUT.PUT_LINE('Author: ' || v_author_name);
                     DBMS_OUTPUT.PUT_LINE('Title: ' || v_c_publications.title);
                     DBMS_OUTPUT.PUT_LINE(' ');
                     DBMS_OUTPUT.PUT_LINE('==================== Details');
@@ -109,6 +168,7 @@ BEGIN
 
                 FOR v_c_journal IN c_journal(v_c_publications.pubid) LOOP
                     DBMS_OUTPUT.PUT_LINE('Type: ' || 'Journal');
+                    DBMS_OUTPUT.PUT_LINE('Author: ' || v_author_name);
                     DBMS_OUTPUT.PUT_LINE('Title: ' || v_c_publications.title);
                     DBMS_OUTPUT.PUT_LINE(' ');
                     DBMS_OUTPUT.PUT_LINE('==================== Details');
@@ -120,6 +180,7 @@ BEGIN
 
                 FOR v_c_proceedings IN c_proceedings(v_c_publications.pubid) LOOP
                     DBMS_OUTPUT.PUT_LINE('Type: ' || 'Proceedings');
+                    DBMS_OUTPUT.PUT_LINE('Author: ' || v_author_name);
                     DBMS_OUTPUT.PUT_LINE('Title: ' || v_c_publications.title);
                     DBMS_OUTPUT.PUT_LINE(' ');
                     DBMS_OUTPUT.PUT_LINE('==================== Details');
@@ -129,6 +190,7 @@ BEGIN
 
                 FOR v_c_article IN c_article(v_c_publications.pubid) LOOP
                     DBMS_OUTPUT.PUT_LINE('Type: ' || 'Article');
+                    DBMS_OUTPUT.PUT_LINE('Author: ' || v_author_name);
                     DBMS_OUTPUT.PUT_LINE('Title: ' || v_c_publications.title);
                     DBMS_OUTPUT.PUT_LINE(' ');
                     DBMS_OUTPUT.PUT_LINE('==================== Details');
@@ -141,6 +203,9 @@ BEGIN
 
             DBMS_OUTPUT.PUT_LINE(' ');
             DBMS_OUTPUT.PUT_LINE(' ');
+ -- Reset the author count and author name variable after each publication
+            V_AUTHOR_COUNT := 0;
+            V_AUTHOR_NAME := NULL;
         END LOOP;
     END LOOP;
  -- Print the summary page
