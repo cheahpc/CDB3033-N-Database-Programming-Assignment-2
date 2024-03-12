@@ -58,60 +58,29 @@ FROM
 SELECT
     *
 FROM
-    author
-WHERE
-    AID = 16;
-
-SELECT
-    *
-FROM
-    author
-ORDER BY
-    AID;
-
--- WHERE
--- name = 'Ajit_A._Diwan';
-
-SELECT
-    *
-FROM
     wrote
 WHERE
- -- aid = 5;-- 5 6 14 15 got 2 records
-    aid = 16;
+    aid = 1;
 
--- 16 got 5 records
--- aid = 37;
+-- pubid = 'PVLDB4_11';
 
 SELECT
     *
 FROM
-    wrote
-WHERE
-    pubid = 'GuravSDB12';
-
-SELECT
-    *
-FROM
- --  publication
-    wrote
+ publication
+ -- wrote
  -- book
  -- journal
  -- proceedings
- --  article
+    -- article
 WHERE
- --  pubid = 'GuravSDB12'; --1
- -- pubid = '0029498';
- -- pubid = 'CheVWOO11';
- -- pubid = 'TaoO09a';
-    pubid = 'ZouCOZ12';
+ -- appearsin = 'CIKM2009';
+    pubid = '0018408';
+
+-- pubid = '0029498';
+-- pubid = 'CheVWOO11';
+-- pubid = 'TaoO09a';
+-- pubid = 'ZouCOZ12';
 -- pubid = 'ZouMCOZ11';
 
 --16
-
-SELECT
-    *
-FROM
-    journal
-WHERE
-    PUBID = 'GuravSDB12';
