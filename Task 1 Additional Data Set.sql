@@ -61,9 +61,39 @@ INSERT INTO wrote VALUES(
 );
 
 INSERT INTO wrote VALUES(
+    4,
+    '0054561',
+    2
+);
+
+INSERT INTO wrote VALUES(
+    25,
+    '0054561',
+    3
+);
+
+INSERT INTO wrote VALUES(
+    10,
+    '0054561',
+    4
+);
+
+INSERT INTO wrote VALUES(
+    16,
+    '0054561',
+    5
+);
+
+INSERT INTO wrote VALUES(
     1,
     '0054562',
     1
+);
+
+INSERT INTO wrote VALUES(
+    21,
+    '0054562',
+    2
 );
 
 INSERT INTO wrote VALUES(
@@ -73,13 +103,73 @@ INSERT INTO wrote VALUES(
 );
 
 INSERT INTO wrote VALUES(
+    7,
+    '0018408',
+    2
+);
+
+INSERT INTO wrote VALUES(
+    14,
+    '0018408',
+    3
+);
+
+INSERT INTO wrote VALUES(
     1,
     'KVLDB3_21',
     1
 );
 
 INSERT INTO wrote VALUES(
-    1,
+    34,
+    'KVLDB3_21',
+    2
+);
+
+INSERT INTO wrote VALUES(
+    26,
+    'KVLDB3_21',
+    3
+);
+
+INSERT INTO wrote VALUES(
+    33,
+    'KVLDB3_21',
+    4
+);
+
+INSERT INTO wrote VALUES(
+    19,
     '0039466',
     1
+);
+
+INSERT INTO wrote VALUES(
+    13,
+    '0039466',
+    2
+);
+
+INSERT INTO wrote VALUES(
+    1,
+    '0039466',
+    3
+);
+
+INSERT INTO wrote VALUES(
+    4,
+    '0039466',
+    4
+);
+
+INSERT INTO wrote VALUES(
+    21,
+    '0039466',
+    5
+);
+
+INSERT INTO wrote VALUES(
+    30,
+    '0039466',
+    6
 );

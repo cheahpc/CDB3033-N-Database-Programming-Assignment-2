@@ -191,11 +191,14 @@ BEGIN
         END LOOP;
  -- step 2.3: add articles pubid to the array
         FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
-            FOR v_article IN c_article(v_c_wrote.pubid) LOOP
-                v_pub_array.extend(1);
-                v_pub_array(v_pub_array.last).pub_year := 0;
-                v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
-                v_article_count := v_article_count + 1;
+            FOR v_c_publications IN c_publications(v_c_wrote.pubid) LOOP
+                FOR v_article IN c_article(v_c_wrote.pubid) LOOP
+                    v_pub_array.extend(1);
+                    v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
+                    v_pub_array(v_pub_array.last).pub_tittle := v_c_publications.title;
+                    v_pub_array(v_pub_array.last).pub_year := 0;
+                    v_article_count := v_article_count + 1;
+                END LOOP;
             END LOOP;
         END LOOP;
  -- step 2.4: update total publication count

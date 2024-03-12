@@ -67,3 +67,5 @@ execute print_publication('Sai_Wu')
 execute print_publication('Ben_Chin_Ooi')
 
 execute print_publication('Yingying_Tao')
+
+set LINESIZE 1000
