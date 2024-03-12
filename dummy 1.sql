@@ -68,14 +68,14 @@ SELECT
     *
 FROM
  --  publication
-    wrote
+ wrote
  -- book
- -- journal
- -- proceedings
+--  journal
+    -- proceedings
  -- article
 WHERE
  -- appearsin = 'CIKM2009';
-    pubid = '0054562';
+    pubid = 'PVLDB4_8';
 
 -- pubid = '0029498';
 -- pubid = 'CheVWOO11';

@@ -129,18 +129,20 @@ CREATE OR REPLACE PROCEDURE print_publication(
     TYPE pub_array_type IS
         TABLE OF item_type;
  -- initialize the array
-    v_pub_array         pub_array_type:=pub_array_type();
+    v_pub_array            pub_array_type:=pub_array_type();
  -- pub_array_type      item_type;
-    v_proceedings_count INTEGER := 0;
-    v_journal_count     INTEGER := 0;
-    v_article_count     INTEGER := 0;
-    v_book_count        INTEGER := 0;
-    v_total_count       INTEGER := 0;
-    v_author_count      INTEGER := 0;
-    v_temp_id           VARCHAR2(50);
-    v_temp_pub_title    VARCHAR2(500);
-    v_temp_year         INTEGER;
-    v_author_name       VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
+    v_proceedings_count    INTEGER := 0;
+    v_journal_count        INTEGER := 0;
+    v_article_count        INTEGER := 0;
+    v_book_count           INTEGER := 0;
+    v_total_count          INTEGER := 0;
+    v_author_count         INTEGER := 0;
+    v_article_author_count INTEGER := 0;
+    v_temp_id              VARCHAR2(50);
+    v_temp_pub_title       VARCHAR2(500);
+    v_temp_year            INTEGER;
+    v_author_name          VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
+    v_article_author_name  VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
 BEGIN
  -- step 1: get author's id given author name
     FOR v_c_author IN c_author LOOP
@@ -260,16 +262,65 @@ BEGIN
                 dbms_output.put_line('appearsin: ' || v_c_article.appearsin);
                 dbms_output.put_line('startpage: ' || v_c_article.startpage);
                 dbms_output.put_line('endpage: ' || v_c_article.endpage);
+                dbms_output.put_line('+++++++++++++++ appears in - details');
+ -- step 5: get relevant details for article
+ --  step 5.1: get author count for each article
+                FOR v_each IN c_wrote_pubid(v_c_article.appearsin) LOOP
+                    v_article_author_count := v_article_author_count + 1;
+                END LOOP;
+ -- step 5.2: get author's aid using v_author_no as aorder
+                FOR v_author_no IN 1..v_article_author_count LOOP
+                    FOR v_c_wrote_aoder IN c_wrote_aoder(v_c_article.appearsin, v_author_no) LOOP
+ -- step 5.4: using aid from aorder, get author's name
+                        FOR v_c_author_aid IN c_author_aid(v_c_wrote_aoder.aid) LOOP
+                            IF v_article_author_name IS NULL THEN
+                                v_article_author_name := v_c_author_aid.name;
+                            ELSE
+                                v_article_author_name := v_article_author_name || ', ' || v_c_author_aid.name;
+                            END IF;
+                        END LOOP;
+                    END LOOP;
+                END LOOP;
+ -- step 5.5: print relevant details for the article's appearsin {book, journal, proceedings}
+                dbms_output.put_line('pubid a.k.a.(appearsin): ' || v_c_article.appearsin);
+                FOR v_article_publications IN c_publications(v_c_article.appearsin) LOOP
+                    FOR v_book IN c_book(v_c_article.appearsin) LOOP
+                        dbms_output.put_line('type: ' || 'book');
+                        dbms_output.put_line('author: ' || v_article_author_name);
+                        dbms_output.put_line('title: ' || v_article_publications.title);
+                        dbms_output.put_line('++++++++++');
+                        dbms_output.put_line('publisher: ' || v_book.publisher);
+                        dbms_output.put_line('year: ' || v_book.year);
+                    END LOOP;
+
+                    FOR v_journal IN c_journal(v_c_article.appearsin) LOOP
+                        dbms_output.put_line('type: ' || 'journal');
+                        dbms_output.put_line('author: ' || v_article_author_name);
+                        dbms_output.put_line('title: ' || v_article_publications.title);
+                        dbms_output.put_line('++++++++++');
+                        dbms_output.put_line('volume: ' || v_journal.volume);
+                        dbms_output.put_line('number: ' || v_journal.num);
+                        dbms_output.put_line('year: ' || v_journal.year);
+                    END LOOP;
+
+                    FOR v_proceedings IN c_proceedings(v_c_article.appearsin) LOOP
+                        dbms_output.put_line('type: ' || 'proceedings');
+                        dbms_output.put_line('author: ' || v_article_author_name);
+                        dbms_output.put_line('title: ' || v_article_publications.title);
+                        dbms_output.put_line('++++++++++');
+                        dbms_output.put_line('year: ' || v_proceedings.year);
+                    END LOOP;
+                END LOOP;
+ -- reset the article author count and article author name variable after each publication
+                dbms_output.put_line(' ');
+                v_article_author_count := 0;
+                v_article_author_name := NULL;
             END LOOP;
  -- reset the author count and author name variable after each publication
-            DBMS_OUTPUT.PUT_LINE(' ');
-            DBMS_OUTPUT.PUT_LINE(' ');
-            V_AUTHOR_COUNT := 0;
-            V_AUTHOR_NAME := NULL;
-        END LOOP;
- -- print all array content
-        FOR i IN 1..v_pub_array.count LOOP
-            dbms_output.put_line('pub_year: ' || v_pub_array(i).pub_year || ' pub_id: ' || v_pub_array(i).pub_id);
+            dbms_output.put_line(' ');
+            dbms_output.put_line(' ');
+            v_author_count := 0;
+            v_author_name := NULL;
         END LOOP;
     END LOOP;
  -- print the summary page
