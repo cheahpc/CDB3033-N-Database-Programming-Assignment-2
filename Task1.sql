@@ -144,13 +144,13 @@ BEGIN
     FOR v_c_author IN c_author LOOP
  -- step 2: using author id, get pubid, from wrote (aid,pubid,aorder)
         FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
-            v_total_count := v_total_count + 1;
  -- step 2.1: using pubid, get publication year from {book, journal, proceedings}
             FOR v_book IN c_book(v_c_wrote.pubid) LOOP
                 v_pub_array.extend(1);
                 v_pub_array(v_pub_array.last).pub_year := v_book.year;
                 v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
                 v_book_count := v_book_count + 1;
+                v_total_count := v_total_count + 1;
             END LOOP;
 
             FOR v_journal IN c_journal(v_c_wrote.pubid) LOOP
@@ -167,20 +167,10 @@ BEGIN
                 v_proceedings_count := v_proceedings_count + 1;
             END LOOP;
         END LOOP;
-
-        DBMS_OUTPUT.PUT_LINE('                     Before');
- -- print all array content
-        FOR I IN 1..V_PUB_ARRAY.COUNT LOOP
-            DBMS_OUTPUT.PUT_LINE('pub_year: ' || V_PUB_ARRAY(I).PUB_YEAR || ' pub_id: ' || V_PUB_ARRAY(I).PUB_ID);
-        END LOOP;
-
-        DBMS_OUTPUT.PUT_LINE('                     After');
- -- step 2.2: sort the array base on year
- -- BEGIN: Sort array by year using bubble sort
+ -- step 2.2: sort the array base on year (bubble sort)
         FOR i IN 1..v_pub_array.COUNT-1 LOOP
             FOR j IN 1..v_pub_array.COUNT-i LOOP
                 IF v_pub_array(j).pub_year > v_pub_array(j+1).pub_year THEN
- -- Swap the elements
                     v_temp_year := v_pub_array(j).pub_year;
                     v_temp_id := v_pub_array(j).pub_id;
                     v_pub_array(j).pub_year := v_pub_array(j+1).pub_year;
@@ -190,7 +180,16 @@ BEGIN
                 END IF;
             END LOOP;
         END LOOP;
- -- END: Sort array by year
+ -- step 2.3: add articles pubid to the array
+        FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
+            FOR v_article IN c_article(v_c_wrote.pubid) LOOP
+                v_pub_array.extend(1);
+                v_pub_array(v_pub_array.last).pub_year := 0;
+                v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
+                v_article_count := v_article_count + 1;
+            END LOOP;
+        END LOOP;
+ -- step 3: using pubid from the array, get publication details
  -- print all array content
         FOR I IN 1..V_PUB_ARRAY.COUNT LOOP
             DBMS_OUTPUT.PUT_LINE('pub_year: ' || V_PUB_ARRAY(I).PUB_YEAR || ' pub_id: ' || V_PUB_ARRAY(I).PUB_ID);
