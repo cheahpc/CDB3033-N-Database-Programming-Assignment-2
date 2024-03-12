@@ -1,3 +1,5 @@
+execute print_publication('')
+
 execute print_publication('Ajit_A._Diwan')
 
 execute print_publication('Ch._Sobhan Babu')
@@ -67,5 +69,7 @@ execute print_publication('Sai_Wu')
 execute print_publication('Ben_Chin_Ooi')
 
 execute print_publication('Yingying_Tao')
+
+execute print_publication('John')
 
 set LINESIZE 1000

@@ -173,3 +173,9 @@ INSERT INTO wrote VALUES(
     '0039466',
     6
 );
+
+INSERT INTO author VALUES (
+    36,
+    'John',
+    ''
+)

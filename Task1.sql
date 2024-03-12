@@ -1,6 +1,9 @@
 CREATE OR REPLACE PROCEDURE print_publication(
     p_author_name IN VARCHAR2
 ) AS
+ -- declare custom exceptions
+    ex_invalid_author exception;
+    ex_no_publications exception;
  -- additional cursor for wrote using aorder
     CURSOR c_wrote_aoder(
         p_pubid CHAR,
@@ -130,7 +133,6 @@ CREATE OR REPLACE PROCEDURE print_publication(
         TABLE OF item_type;
  -- initialize the array
     v_pub_array            pub_array_type:=pub_array_type();
- -- pub_array_type      item_type;
     v_proceedings_count    INTEGER := 0;
     v_journal_count        INTEGER := 0;
     v_article_count        INTEGER := 0;
@@ -138,14 +140,28 @@ CREATE OR REPLACE PROCEDURE print_publication(
     v_total_count          INTEGER := 0;
     v_author_count         INTEGER := 0;
     v_article_author_count INTEGER := 0;
+    v_article_author_name  VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
+    v_author_name          VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
     v_temp_id              VARCHAR2(50);
     v_temp_pub_title       VARCHAR2(500);
     v_temp_year            INTEGER;
-    v_author_name          VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
-    v_article_author_name  VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
+    v_publication_count    INTEGER;
 BEGIN
+ -- step 0: check if author name exists
+    IF p_author_name IS NULL THEN
+        RAISE ex_invalid_author;
+    END IF;
  -- step 1: get author's id given author name
     FOR v_c_author IN c_author LOOP
+ -- step 1.1: check if author has any publications
+        v_publication_count:=0;
+        FOR v_pubcount IN c_wrote(v_c_author.aid) LOOP
+            v_publication_count := v_publication_count + 1;
+        END LOOP;
+
+        IF v_publication_count = 0 THEN
+            RAISE ex_no_publications;
+        END IF;
  -- step 2: using author id, get pubid, from wrote (aid,pubid,aorder)
         FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
             FOR v_c_publications IN c_publications(v_c_wrote.pubid) LOOP
@@ -331,7 +347,11 @@ BEGIN
     dbms_output.put_line('book: ' || v_book_count);
     dbms_output.put_line('total publication: ' || v_total_count);
 EXCEPTION
+    WHEN ex_invalid_author THEN
+        dbms_output.put_line('error: invalid author name.');
+    WHEN ex_no_publications THEN
+        dbms_output.put_line('error: no publications found for this author.');
     WHEN OTHERS THEN
-        dbms_output.put_line('error: ' || sqlerrm);
+        dbms_output.put_line('unexpected error: ' || sqlerrm);
 END;
 /
