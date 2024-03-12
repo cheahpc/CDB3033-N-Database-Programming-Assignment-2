@@ -20,6 +20,13 @@ DESC proceedings;
 
 DESC article;
 
+DESC publication_master;
+
+SELECT
+    *
+FROM
+    publication_master;
+
 SELECT
     *
 FROM
@@ -68,10 +75,10 @@ SELECT
     *
 FROM
  --  publication
- wrote
+    wrote
  -- book
---  journal
-    -- proceedings
+ --  journal
+ -- proceedings
  -- article
 WHERE
  -- appearsin = 'CIKM2009';
