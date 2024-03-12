@@ -359,6 +359,7 @@ BEGIN
     dbms_output.put_line('article: ' || v_article_count);
     dbms_output.put_line('book: ' || v_book_count);
     dbms_output.put_line('total publication: ' || v_total_count);
+ -- exception handling
 EXCEPTION
     WHEN ex_invalid_author THEN
         dbms_output.put_line('error: invalid author name.');

@@ -1,3 +1,8 @@
+set LINESIZE 1000
+
+SET SPOOL ON
+
+
 execute print_publication('')
 
 execute print_publication('Ajit_A._Diwan')
@@ -71,6 +76,6 @@ execute print_publication('Ben_Chin_Ooi')
 execute print_publication('Yingying_Tao')
 
 execute print_publication('John')
+
 execute print_publication('Paul')
 
-set LINESIZE 1000
