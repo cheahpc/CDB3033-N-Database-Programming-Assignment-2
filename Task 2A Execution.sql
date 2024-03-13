@@ -1,3 +1,3 @@
-set LINESIZE 500
+set LINESIZE 800
 
 execute merge_publication

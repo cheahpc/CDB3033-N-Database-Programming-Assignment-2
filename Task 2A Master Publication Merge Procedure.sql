@@ -107,11 +107,11 @@ BEGIN
                         detail4 = NULL
                     WHERE
                         pubid = v_publications.pubid;
-                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || ' type: book' || ' title: ' || v_publications.title );
+                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
                     total_book_success := total_book_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || ' type: book' || ' title: ' || v_publications.title);
+                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title);
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         dbms_output.put_line('');
@@ -136,11 +136,11 @@ BEGIN
                         v_book.year,
                         NULL
                     );
-                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || ' type: book' || ' title: ' || v_publications.title );
+                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
                     total_book_success := total_book_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || ' type: book' || ' title: ' || v_publications.title );
+                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_book_failed := total_book_failed + 1;
@@ -168,11 +168,11 @@ BEGIN
                         detail4 = v_journal.year
                     WHERE
                         pubid = v_publications.pubid;
-                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || ' type: journal' || ' title: ' || v_publications.title);
+                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
                     total_journal_success := total_journal_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || ' type: journal' || ' title: ' || v_publications.title);
+                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_journal_failed := total_journal_failed + 1;
@@ -197,11 +197,11 @@ BEGIN
                         v_journal.year
                     );
                     total_journal_success := total_journal_success + 1;
-                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || ' type: journal' || ' title: ' || v_publications.title);
+                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
                     total_journal_success := total_journal_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || ' type: journal' || ' title: ' || v_publications.title);
+                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_journal_failed := total_journal_failed + 1;
@@ -229,11 +229,11 @@ BEGIN
                         detail4 = NULL
                     WHERE
                         pubid = v_publications.pubid;
-                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || ' type: proceedings' || ' title: ' || v_publications.title );
+                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title );
                     total_proceedings_success := total_proceedings_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || ' type: proceedings' || ' title: ' || v_publications.title);
+                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title);
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_proceedings_failed := total_proceedings_failed + 1;
@@ -257,11 +257,11 @@ BEGIN
                         NULL,
                         NULL
                     );
-                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || ' type: proceedings' || ' title: ' || v_publications.title );
+                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title );
                     total_proceedings_success := total_proceedings_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || ' type: proceedings' || ' title: ' || v_publications.title );
+                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title );
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_proceedings_failed := total_proceedings_failed + 1;
@@ -289,11 +289,11 @@ BEGIN
                         detail4 = v_article.endpage
                     WHERE
                         pubid = v_publications.pubid;
-                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || ' type: article' || ' title: ' || v_publications.title );
+                    dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
                     total_article_success := total_article_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || ' type: article' || ' title: ' || v_publications.title);
+                        dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title);
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_article_failed := total_article_failed + 1;
@@ -317,11 +317,11 @@ BEGIN
                         v_article.startpage,
                         v_article.endpage
                     );
-                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || ' type: article' || ' title: ' || v_publications.title );
+                    dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
                     total_article_success := total_article_success + 1;
                 EXCEPTION
                     WHEN OTHERS THEN
-                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || ' type: article' || ' title: ' || v_publications.title );
+                        dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
                         dbms_output.put_line('error code: ' || sqlcode);
                         dbms_output.put_line('error message: ' || sqlerrm);
                         total_article_failed := total_article_failed + 1;
