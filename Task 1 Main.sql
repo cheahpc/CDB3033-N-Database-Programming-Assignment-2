@@ -1,19 +1,13 @@
 CREATE OR REPLACE PROCEDURE print_publication(
     p_author_name IN VARCHAR2
 ) AS
- -- declare custom exceptions
-    ex_invalid_author exception;
-    ex_author_not_exist exception;
-    ex_no_publications exception;
  -- additional cursor for wrote using aorder
     CURSOR c_wrote_aoder(
         p_pubid CHAR,
         p_aoder NUMBER
     ) IS
     SELECT
-        aid,
-        pubid,
-        aorder
+        *
     FROM
         wrote
     WHERE
@@ -24,9 +18,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_pubid CHAR
     ) IS
     SELECT
-        aid,
-        pubid,
-        aorder
+        *
     FROM
         wrote
     WHERE
@@ -36,8 +28,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_aid NUMBER
     ) IS
     SELECT
-        aid,
-        name
+        *
     FROM
         author
     WHERE
@@ -45,8 +36,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
  -- 1st cursor - to retrieve author details
     CURSOR c_author IS
     SELECT
-        aid,
-        name
+        *
     FROM
         author
     WHERE
@@ -56,9 +46,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_aid NUMBER
     ) IS
     SELECT
-        aid,
-        pubid,
-        aorder
+        *
     FROM
         wrote
     WHERE
@@ -68,8 +56,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        title
+        *
     FROM
         publication
     WHERE
@@ -79,8 +66,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_pubid CHAR
     ) IS
     SELECT
-        publisher,
-        year
+        *
     FROM
         book
     WHERE
@@ -90,10 +76,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        volume,
-        num,
-        year
+        *
     FROM
         journal
     WHERE
@@ -103,8 +86,7 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        year
+        *
     FROM
         proceedings
     WHERE
@@ -114,24 +96,20 @@ CREATE OR REPLACE PROCEDURE print_publication(
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        appearsin,
-        startpage,
-        endpage
+        *
     FROM
         article
     WHERE
         pubid = p_pubid;
- -- define a table type
+ -- define table type, for sorting year purpose
     TYPE item_type IS RECORD(
         pub_id VARCHAR2(50),
         pub_tittle VARCHAR2(500),
         pub_year INTEGER
     );
- -- declare a 2d array of table type
     TYPE pub_array_type IS
         TABLE OF item_type;
- -- initialize the array
+ -- variable
     v_pub_array            pub_array_type:=pub_array_type();
     v_proceedings_count    INTEGER := 0;
     v_journal_count        INTEGER := 0;
@@ -142,10 +120,14 @@ CREATE OR REPLACE PROCEDURE print_publication(
     v_article_author_count INTEGER := 0;
     v_article_author_name  VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
     v_author_name          VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
-    v_temp_id              VARCHAR2(50);
-    v_temp_pub_title       VARCHAR2(500);
-    v_temp_year            INTEGER;
+    v_temp_id              VARCHAR2(50); -- for sorting purpose
+    v_temp_pub_title       VARCHAR2(500); -- for sorting purpose
+    v_temp_year            INTEGER; -- for sorting purpose
     v_publication_count    INTEGER;
+ -- declare custom exceptions
+    ex_invalid_author exception;
+    ex_author_not_exist exception;
+    ex_no_publications exception;
 BEGIN
  -- step 0: check if author name is null
     IF p_author_name IS NULL THEN
@@ -172,7 +154,7 @@ BEGIN
             RAISE ex_no_publications;
         END IF;
     END LOOP;
- -- #If author exist and has publications, then proceed to find the publication details#
+ -- #if author exist and has publications, then proceed to find the publication details#
  -- step 1: get author's id given author name
     FOR v_c_author IN c_author LOOP
  -- step 2: using author id, get pubid, from wrote (aid,pubid,aorder)

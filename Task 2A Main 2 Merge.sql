@@ -2,8 +2,7 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
  -- cursor 1 publication
     CURSOR c_publications IS
     SELECT
-        pubid,
-        title
+        *
     FROM
         publication;
  -- cursor 2 book
@@ -11,9 +10,7 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        publisher,
-        year
+        *
     FROM
         book
     WHERE
@@ -23,10 +20,7 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        volume,
-        num,
-        year
+        *
     FROM
         journal
     WHERE
@@ -36,8 +30,7 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        year
+        *
     FROM
         proceedings
     WHERE
@@ -47,10 +40,7 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
         p_pubid CHAR
     ) IS
     SELECT
-        pubid,
-        appearsin,
-        startpage,
-        endpage
+        *
     FROM
         article
     WHERE
@@ -66,24 +56,24 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
     WHERE
         pubid = p_pubid;
  -- varialbe
-    total_book                NUMBER:=0;
+    total_book                NUMBER := 0;
     total_book_success        NUMBER := 0;
     total_book_failed         NUMBER := 0;
-    total_journal             NUMBER:=0;
-    total_journal_success     NUMBER:=0;
-    total_journal_failed      NUMBER:=0;
-    total_proceedings         NUMBER:=0;
-    total_proceedings_success NUMBER:=0;
-    total_proceedings_failed  NUMBER:=0;
-    total_article             NUMBER:=0;
-    total_article_success     NUMBER:=0;
-    total_article_failed      NUMBER:=0;
+    total_journal             NUMBER := 0;
+    total_journal_success     NUMBER := 0;
+    total_journal_failed      NUMBER := 0;
+    total_proceedings         NUMBER := 0;
+    total_proceedings_success NUMBER := 0;
+    total_proceedings_failed  NUMBER := 0;
+    total_article             NUMBER := 0;
+    total_article_success     NUMBER := 0;
+    total_article_failed      NUMBER := 0;
     total_succssful_operation NUMBER := 0;
     total_failed_operation    NUMBER := 0;
-    total_detail_not_found    NUMBER :=0;
-    total_operation           NUMBER :=0;
+    total_detail_not_found    NUMBER := 0;
+    total_operation           NUMBER := 0;
     record_existed            BOOLEAN := false;
-    detail_found              BOOLEAN:=false;
+    detail_found              BOOLEAN := false;
 BEGIN
     DBMS_OUTPUT.PUT_LINE(' - - - merge operation started - - - ');
     FOR v_publications IN c_publications LOOP
@@ -102,9 +92,15 @@ BEGIN
                     UPDATE publication_master
                     SET
                         type = 'book',
-                        detail1 = v_publications.title,
-                        detail2 = v_book.publisher,
-                        detail3 = v_book.year,
+                        detail1 = TRIM(
+                            v_publications.title
+                        ),
+                        detail2 = TRIM(
+                            v_book.publisher
+                        ),
+                        detail3 = TRIM(
+                            v_book.year
+                        ),
                         detail4 = NULL
                     WHERE
                         pubid = v_publications.pubid;
@@ -130,11 +126,11 @@ BEGIN
                         detail3,
                         detail4
                     ) VALUES (
-                        v_publications.pubid,
+                        TRIM(v_publications.pubid),
                         'book',
-                        v_publications.title,
-                        v_book.publisher,
-                        v_book.year,
+                        TRIM(v_publications.title),
+                        TRIM(v_book.publisher),
+                        TRIM(v_book.year),
                         NULL
                     );
                     dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
@@ -163,10 +159,18 @@ BEGIN
                     UPDATE publication_master
                     SET
                         type = 'journal',
-                        detail1 = v_publications.title,
-                        detail2 = v_journal.volume,
-                        detail3 = v_journal.num,
-                        detail4 = v_journal.year
+                        detail1 = TRIM(
+                            v_publications.title
+                        ),
+                        detail2 = TRIM(
+                            v_journal.volume
+                        ),
+                        detail3 = TRIM(
+                            v_journal.num
+                        ),
+                        detail4 = TRIM(
+                            v_journal.year
+                        )
                     WHERE
                         pubid = v_publications.pubid;
                     dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
@@ -190,12 +194,12 @@ BEGIN
                         detail3,
                         detail4
                     ) VALUES (
-                        v_publications.pubid,
+                        TRIM(v_publications.pubid),
                         'journal',
-                        v_publications.title,
-                        v_journal.volume,
-                        v_journal.num,
-                        v_journal.year
+                        TRIM(v_publications.title),
+                        TRIM(v_journal.volume),
+                        TRIM(v_journal.num),
+                        TRIM(v_journal.year)
                     );
                     total_journal_success := total_journal_success + 1;
                     dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
@@ -224,8 +228,12 @@ BEGIN
                     UPDATE publication_master
                     SET
                         type = 'proceedings',
-                        detail1 = v_publications.title,
-                        detail2 = v_proceedings.year,
+                        detail1 = TRIM(
+                            v_publications.title
+                        ),
+                        detail2 = TRIM(
+                            v_proceedings.year
+                        ),
                         detail3 = NULL,
                         detail4 = NULL
                     WHERE
@@ -251,10 +259,10 @@ BEGIN
                         detail3,
                         detail4
                     ) VALUES (
-                        v_publications.pubid,
+                        TRIM(v_publications.pubid),
                         'proceedings',
-                        v_publications.title,
-                        v_proceedings.year,
+                        TRIM(v_publications.title),
+                        TRIM(v_proceedings.year),
                         NULL,
                         NULL
                     );
@@ -284,10 +292,18 @@ BEGIN
                     UPDATE publication_master
                     SET
                         type = 'article',
-                        detail1 = v_publications.title,
-                        detail2 = v_article.appearsin,
-                        detail3 = v_article.startpage,
-                        detail4 = v_article.endpage
+                        detail1 = TRIM(
+                            v_publications.title
+                        ),
+                        detail2 = TRIM(
+                            v_article.appearsin
+                        ),
+                        detail3 = TRIM(
+                            v_article.startpage
+                        ),
+                        detail4 = TRIM(
+                            v_article.endpage
+                        )
                     WHERE
                         pubid = v_publications.pubid;
                     dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
@@ -311,12 +327,12 @@ BEGIN
                         detail3,
                         detail4
                     ) VALUES (
-                        v_publications.pubid,
+                        TRIM(v_publications.pubid),
                         'article',
-                        v_publications.title,
-                        v_article.appearsin,
-                        v_article.startpage,
-                        v_article.endpage
+                        TRIM(v_publications.title),
+                        TRIM(v_article.appearsin),
+                        TRIM(v_article.startpage),
+                        TRIM(v_article.endpage)
                     );
                     dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
                     total_article_success := total_article_success + 1;

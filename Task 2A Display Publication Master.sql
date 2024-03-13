@@ -1,12 +1,7 @@
 CREATE OR REPLACE PROCEDURE display_master_publication AS
     CURSOR c_master_publication IS
     SELECT
-        pubid,
-        type,
-        detail1,
-        detail2,
-        detail3,
-        detail4
+        *
     FROM
         publication_master;
  -- variable

@@ -74,15 +74,15 @@ WHERE
 SELECT
     *
 FROM
- --  publication
-    wrote
+    publication
+ -- wrote
  -- book
  --  journal
  -- proceedings
  -- article
 WHERE
  -- appearsin = 'CIKM2009';
-    pubid = 'PVLDB4_8';
+    pubid = 'HartmaKL12';
 
 -- pubid = '0029498';
 -- pubid = 'CheVWOO11';

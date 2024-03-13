@@ -10,3 +10,4 @@ execute merge_publication
 
 EXECUTE display_master_publication
 SPOOL OFF
+
