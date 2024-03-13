@@ -1,7 +1,8 @@
-set LINESIZE 1000
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
 
 SET SPOOL ON
-
 
 execute print_publication('')
 
@@ -78,4 +79,3 @@ execute print_publication('Yingying_Tao')
 execute print_publication('John')
 
 execute print_publication('Paul')
-
