@@ -39,13 +39,12 @@ CREATE OR REPLACE PROCEDURE print_article(
     TYPE start_page_type IS
         TABLE OF INTEGER;
  -- variable
-    v_start_page_array        start_page_type:=start_page_type();
-    v_pub_type                CHAR(10);
-    v_pub_tittle              CHAR(100);
-    v_temp_start_page         NUMBER := 0;
-    v_article_count           NUMBER := 0;
-    v_article_appearsin_pubid CHAR(10);
-    v_pubid_is_valid          BOOLEAN := false;
+    v_start_page_array  start_page_type:=start_page_type();
+    v_pub_type          CHAR(10);
+    v_pub_tittle        CHAR(100);
+    v_temp_start_page   NUMBER := 0;
+    v_article_count     NUMBER := 0;
+    v_pubid_is_valid    BOOLEAN := false;
  -- exception
     ex_invalid_pubid exception;
     ex_record_not_found exception;
@@ -73,13 +72,12 @@ BEGIN
  -- step 3: get the article into array
     FOR v_c_article IN c_article(p_input_pubid) LOOP
         v_article_count := v_article_count + 1;
-        dbms_output.put_line('i reached here');
         v_start_page_array.extend(1);
         v_start_page_array(v_article_count) := v_c_article.detail3;
     END LOOP;
  -- step 3.1: check if article is found
     IF v_article_count = 0 THEN
-        RAISE ex_record_not_found;
+        RAISE ex_no_article;
     END IF;
  -- step 4: sort the array (bubble sort)
     FOR i IN 1..v_article_count LOOP
