@@ -85,6 +85,7 @@ CREATE OR REPLACE PROCEDURE merge_publication AS
     record_existed            BOOLEAN := false;
     detail_found              BOOLEAN:=false;
 BEGIN
+    DBMS_OUTPUT.PUT_LINE(' - - - merge operation started - - - ');
     FOR v_publications IN c_publications LOOP
         detail_found := false;
  -- loop 1: book
@@ -331,7 +332,7 @@ BEGIN
         END LOOP;
  -- last if publication id not exist in {book, journal, proceedings, article} then count error
         IF NOT detail_found THEN
-            dbms_output.put_line('error. unable to find any records in {book, journal, proceeding, article}. pubid: '|| v_publications.pubid || ' title: ' || v_publications.title);
+            dbms_output.put_line('error. unable to find any records in {book, journal, proceeding, article}. pubid: '|| v_publications.pubid || '  |  title: ' || v_publications.title);
             total_detail_not_found:= total_detail_not_found + 1;
         END IF;
     END LOOP;
@@ -341,6 +342,8 @@ BEGIN
     total_journal := total_journal_success + total_journal_failed;
     total_proceedings := total_proceedings_success + total_proceedings_failed;
     total_article := total_article_success + total_article_failed;
+    DBMS_OUTPUT.PUT_LINE(' - - - merge operation completed - - - ');
+    DBMS_OUTPUT.PUT_LINE(' ');
     dbms_output.put_line('-------------------- merge operation summary --------------------');
     dbms_output.put_line('- total operation: ' || total_operation);
     dbms_output.put_line('- total missing detail: ' || total_detail_not_found);
