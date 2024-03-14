@@ -1,3 +1,11 @@
+SPOOL 'Task 1 Additional Data Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
 INSERT INTO publication VALUES(
     '0018408',
     'Dark Matter'
@@ -178,4 +186,6 @@ INSERT INTO author VALUES (
     36,
     'John',
     ''
-)
+);
+
+SPOOL OFF

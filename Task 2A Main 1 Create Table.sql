@@ -1,4 +1,15 @@
--- create the publication_master table
+SPOOL 'Task 2A Main 1 Create Table Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
+-- drop the table if it exists
+DROP TABLE publication_master;
+
+-- create the table
 CREATE TABLE publication_master (
     pubid CHAR(10) NOT NULL,
     type VARCHAR2(50) NOT NULL,
@@ -10,5 +21,4 @@ CREATE TABLE publication_master (
     FOREIGN KEY (pubid) REFERENCES publication (pubid)
 );
 
--- drop the table
-DROP TABLE publication_master;
+SPOOL OFF

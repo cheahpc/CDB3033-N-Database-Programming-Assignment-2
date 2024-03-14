@@ -1,3 +1,11 @@
+SPOOL 'Task 2B Main Print Article Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
 CREATE OR REPLACE PROCEDURE print_article(
     p_input_pubid CHAR
 ) IS
@@ -40,7 +48,7 @@ CREATE OR REPLACE PROCEDURE print_article(
         TABLE OF INTEGER;
  -- variable
     v_start_page_array  start_page_type:=start_page_type();
-    v_pub_type          CHAR(10);
+    v_pub_type          CHAR(25);
     v_pub_tittle        CHAR(100);
     v_temp_start_page   NUMBER := 0;
     v_article_count     NUMBER := 0;
@@ -98,7 +106,7 @@ BEGIN
     dbms_output.put_line('------------------------------------------------------ article list');
     FOR v_i IN 1..v_article_count LOOP
         FOR v_c_article_start_page IN c_article_start_page(p_input_pubid, v_start_page_array(v_i)) LOOP
-            dbms_output.put_line('article: ' || v_i || ' - ' || v_c_article_start_page.detail1);
+            dbms_output.put_line('article: ' || v_i || ' - ' || v_c_article_start_page.detail1 || ' (' || V_C_ARTICLE_START_PAGE.detail3 || '-' || v_c_article_start_page.detail4 || ')');
         END LOOP;
     END LOOP;
 EXCEPTION
@@ -118,3 +126,5 @@ EXCEPTION
         dbms_output.put_line('error message: ' || sqlerrm);
 END;
 /
+
+SPOOL OFF

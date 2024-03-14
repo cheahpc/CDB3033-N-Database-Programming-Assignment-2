@@ -82,12 +82,18 @@ FROM
  -- article
 WHERE
  -- appearsin = 'CIKM2009';
-    pubid = 'HartmaKL12';
+    pubid = 'CIKM2009';
 
--- pubid = '0029498';
--- pubid = 'CheVWOO11';
--- pubid = 'TaoO09a';
--- pubid = 'ZouCOZ12';
--- pubid = 'ZouMCOZ11';
+-- Sample output
+EXECUTE PRINT_ARTICLE('ICDE2011')
 
---16
+EXECUTE PRINT_ARTICLE('VLDBJ21_1')
+
+-- Exception Null Input
+EXECUTE PRINT_ARTICLE('')
+
+-- Exception No Article Found
+EXECUTE PRINT_ARTICLE('0029498')
+
+-- Exception Not a {book, journal, proceedings} Type
+EXECUTE PRINT_ARTICLE('TaoO09a')

@@ -1,0 +1,130 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE print_article(
+  2      p_input_pubid CHAR
+  3  ) IS
+  4   -- cursor 1 merge pub pubid
+  5      CURSOR c_merge_publication (
+  6          p_pubid CHAR
+  7      ) IS
+  8      SELECT
+  9          pubid,
+  10          type,
+  11          detail1
+  12      FROM
+  13          publication_master
+  14      WHERE
+  15          pubid = p_pubid;
+  16   -- cursor 2 targeting article
+  17      CURSOR c_article(
+  18          p_pubid CHAR
+  19      ) IS
+  20      SELECT
+  21          *
+  22      FROM
+  23          publication_master
+  24      WHERE
+  25          detail2 = p_pubid;
+  26   -- cursor 3 targeting article base on start page
+  27      CURSOR c_article_start_page(
+  28          p_appearsin CHAR,
+  29          p_start_page NUMBER
+  30      ) IS
+  31      SELECT
+  32          *
+  33      FROM
+  34          publication_master
+  35      WHERE
+  36          detail2 = p_appearsin AND
+  37          detail3 = p_start_page;
+  38   -- array for sorting
+  39      TYPE start_page_type IS
+  40          TABLE OF INTEGER;
+  41   -- variable
+  42      v_start_page_array  start_page_type:=start_page_type();
+  43      v_pub_type          CHAR(25);
+  44      v_pub_tittle        CHAR(100);
+  45      v_temp_start_page   NUMBER := 0;
+  46      v_article_count     NUMBER := 0;
+  47      v_pubid_is_valid    BOOLEAN := false;
+  48   -- exception
+  49      ex_invalid_pubid exception;
+  50      ex_record_not_found exception;
+  51      ex_type_error exception;
+  52      ex_no_article exception;
+  53  BEGIN
+  54   -- step 0: check if the pubid is valid
+  55      IF p_input_pubid IS NULL THEN
+  56          RAISE ex_invalid_pubid;
+  57      END IF;
+  58   -- step 1: check if the pubid is not article
+  59      FOR v_cursor IN c_merge_publication(p_input_pubid) LOOP
+  60          IF v_cursor.type = 'article' THEN
+  61              RAISE ex_type_error;
+  62          END IF;
+  63
+  64          v_pub_type := v_cursor.type;
+  65          v_pub_tittle := v_cursor.detail1;
+  66          v_pubid_is_valid := true;
+  67      END LOOP;
+  68   -- step 2: check if record is found
+  69      IF v_pubid_is_valid = false THEN
+  70          RAISE ex_record_not_found;
+  71      END IF;
+  72   -- step 3: get the article into array
+  73      FOR v_c_article IN c_article(p_input_pubid) LOOP
+  74          v_article_count := v_article_count + 1;
+  75          v_start_page_array.extend(1);
+  76          v_start_page_array(v_article_count) := v_c_article.detail3;
+  77      END LOOP;
+  78   -- step 3.1: check if article is found
+  79      IF v_article_count = 0 THEN
+  80          RAISE ex_no_article;
+  81      END IF;
+  82   -- step 4: sort the array (bubble sort)
+  83      FOR i IN 1..v_article_count LOOP
+  84          FOR j IN i+1..v_article_count LOOP
+  85              IF v_start_page_array(i) > v_start_page_array(j) THEN
+  86                  v_temp_start_page := v_start_page_array(i);
+  87                  v_start_page_array(i) := v_start_page_array(j);
+  88                  v_start_page_array(j) := v_temp_start_page;
+  89              END IF;
+  90          END LOOP;
+  91      END LOOP;
+  92   -- step 5: print the article
+  93      dbms_output.put_line('==================== query result ====================');
+  94      dbms_output.put_line('+ publication id: ' || p_input_pubid);
+  95      dbms_output.put_line('+ publication tittle: ' || v_pub_tittle);
+  96      dbms_output.put_line('+ publication type: ' || v_pub_type);
+  97      dbms_output.put_line('+ article count: ' || v_article_count);
+  98      dbms_output.put_line('------------------------------------------------------ article list');
+  99      FOR v_i IN 1..v_article_count LOOP
+  100          FOR v_c_article_start_page IN c_article_start_page(p_input_pubid, v_start_page_array(v_i)) LOOP
+  101              dbms_output.put_line('article: ' || v_i || ' - ' || v_c_article_start_page.detail1 || ' (' || V_C_ARTICLE_START_PAGE.detail3 || '-' || v_c_article_start_page.detail4 || ')');
+  102          END LOOP;
+  103      END LOOP;
+  104  EXCEPTION
+  105      WHEN ex_invalid_pubid THEN
+  106          dbms_output.put_line('error: invalid "pubid" provided. "pubid" cannot be null.');
+  107      WHEN ex_record_not_found THEN
+  108          dbms_output.put_line('error: no record found for the provided "pubid": ' || p_input_pubid);
+  109      WHEN ex_type_error THEN
+  110          dbms_output.put_line('error: provided "pubid": ' || p_input_pubid || ' is an article type.');
+  111          dbms_output.put_line('please enter a "pubid" of a book, journal, or proceeding type.');
+  112      WHEN ex_no_article THEN
+  113          dbms_output.put_line('error: no article found for the provided "pubid": ' || p_input_pubid);
+  114      WHEN OTHERS THEN
+  115          dbms_output.put_line('error: an unexpected error occurred.');
+  116          dbms_output.put_line('please contact the system administrator.');
+  117          dbms_output.put_line('error code: ' || sqlcode);
+  118          dbms_output.put_line('error message: ' || sqlerrm);
+  119  END;
+  120  /
+
+PROCEDURE created.
+
+Commit complete.
+
+SQL> SPOOL OFF
+

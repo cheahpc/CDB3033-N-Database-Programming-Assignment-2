@@ -1,3 +1,11 @@
+SPOOL 'Task 1 Main Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
 CREATE OR REPLACE PROCEDURE print_publication(
     p_author_name IN VARCHAR2
 ) AS
@@ -353,3 +361,5 @@ EXCEPTION
         dbms_output.put_line('unexpected error: ' || sqlerrm);
 END;
 /
+
+SPOOL OFF

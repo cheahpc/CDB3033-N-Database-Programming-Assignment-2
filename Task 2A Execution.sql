@@ -1,4 +1,4 @@
-SPOOL 'Task 1 Script B Output.txt'
+SPOOL 'T2A TC3 Spool - Display Merge Publication.txt'
 
 SET ECHO ON
 
@@ -6,8 +6,10 @@ SET LINESIZE 1000
 
 SET SERVEROUTPUT ON
 
-execute merge_publication
+-- Merge publications
+EXECUTE merge_publication
 
+-- Display the merged table
 EXECUTE display_master_publication
-SPOOL OFF
 
+SPOOL OFF

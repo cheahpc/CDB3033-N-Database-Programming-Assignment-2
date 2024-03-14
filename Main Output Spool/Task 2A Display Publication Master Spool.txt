@@ -1,0 +1,64 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE display_master_publication AS
+  2      CURSOR c_master_publication IS
+  3      SELECT
+  4          *
+  5      FROM
+  6          publication_master;
+  7   -- variable
+  8      v_counter NUMBER := 0;
+  9  BEGIN
+  10      DBMS_OUTPUT.PUT_LINE(' - - - retrieving information from publication master - - - ' );
+  11      FOR v_c_master_publication IN c_master_publication LOOP
+  12          v_counter := v_counter + 1;
+  13          dbms_output.put_line('==================== publication: ' || v_counter || ' ====================');
+  14          dbms_output.put_line('+ pubid: ' || v_c_master_publication.pubid);
+  15          CASE v_c_master_publication.type
+  16              WHEN 'book' THEN
+  17                  dbms_output.put_line('+ type: book' );
+  18                  dbms_output.put_line('+ title: ' || v_c_master_publication.detail1);
+  19                  dbms_output.put_line('+ publisher: ' || v_c_master_publication.detail2);
+  20                  dbms_output.put_line('+ year: ' || v_c_master_publication.detail3);
+  21              WHEN 'journal' THEN
+  22                  dbms_output.put_line('+ type: journal' );
+  23                  dbms_output.put_line('+ title: ' || v_c_master_publication.detail1);
+  24                  dbms_output.put_line('+ volume: ' || v_c_master_publication.detail2);
+  25                  dbms_output.put_line('+ number: ' || v_c_master_publication.detail3);
+  26                  dbms_output.put_line('+ year: ' || v_c_master_publication.detail4);
+  27              WHEN 'proceedings' THEN
+  28                  dbms_output.put_line('+ type: proceedings' );
+  29                  dbms_output.put_line('+ title: ' || v_c_master_publication.detail1);
+  30                  dbms_output.put_line('+ year: ' || v_c_master_publication.detail2);
+  31              WHEN 'article' THEN
+  32                  dbms_output.put_line('+ type: article' );
+  33                  dbms_output.put_line('+ title: ' || v_c_master_publication.detail1);
+  34                  dbms_output.put_line('+ appears in: ' || v_c_master_publication.detail2);
+  35                  dbms_output.put_line('+ start page: ' || v_c_master_publication.detail3);
+  36                  dbms_output.put_line('+ end page: ' || v_c_master_publication.detail4);
+  37          END CASE;
+  38
+  39          dbms_output.put_line(' ');
+  40          dbms_output.put_line(' ');
+  41      END LOOP;
+  42
+  43      IF v_counter = 0 THEN
+  44          dbms_output.put_line('no publication found. 0 rows selected.');
+  45      ELSE
+  46          dbms_output.put_line('total ' || v_counter || ' publication(s) found.');
+  47      END IF;
+  48  EXCEPTION
+  49      WHEN OTHERS THEN
+  50          dbms_output.put_line('Unknown error occured. Please contact admin.');
+  51          dbms_output.put_line('Error code: ' || SQLCODE);
+  52          dbms_output.put_line('Error message: ' || SQLERRM);
+  53  END;
+  54  /
+
+PROCEDURE created.
+
+Commit complete.
+
+SQL> SPOOL OFF
+

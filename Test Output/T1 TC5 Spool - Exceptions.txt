@@ -1,0 +1,30 @@
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> -- Exception Test - Null Input
+SQL> execute print_publication('')
+
+error: invalid author name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+PL/SQL procedure successfully completed.
+
+Commit complete.
+
+SQL> -- Exception Test - Non-existing Author
+SQL> execute print_publication('Paul')
+
+error: author name does not exist.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+PL/SQL procedure successfully completed.
+
+Commit complete.
+
+SQL> -- Exception Test - No Publication Record
+SQL> execute print_publication('John')
+
+error: no publications found for this author.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+PL/SQL procedure successfully completed.
+
+Commit complete.
+
+SQL> SET ECHO OFF

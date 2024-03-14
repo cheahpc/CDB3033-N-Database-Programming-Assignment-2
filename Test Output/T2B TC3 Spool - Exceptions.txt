@@ -1,0 +1,33 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> -- Exception Null Input
+SQL> EXECUTE PRINT_ARTICLE('')
+
+error: invalid "pubid" provided. "pubid" cannot be null.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+PL/SQL procedure successfully completed.
+
+Commit complete.
+
+SQL> -- Exception No Article Found
+SQL> EXECUTE PRINT_ARTICLE('0029498')
+
+error: no article found for the provided "pubid": 0029498                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+PL/SQL procedure successfully completed.
+
+Commit complete.
+
+SQL> -- Exception Not a {book, journal, proceedings} Type
+SQL> EXECUTE PRINT_ARTICLE('TaoO09a')
+
+error: provided "pubid": TaoO09a is an article type.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+please enter a "pubid" of a book, journal, or proceeding type.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+PL/SQL procedure successfully completed.
+
+Commit complete.
+
+SQL> SPOOL OFF
+

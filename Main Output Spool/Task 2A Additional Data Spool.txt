@@ -1,0 +1,65 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> INSERT INTO publication (
+  2      pubid,
+  3      title
+  4  ) VALUES (
+  5      '9099138',
+  6      'Roadmap to Zero Carbon Footprint'
+  7  );
+
+1 row created.
+
+Commit complete.
+
+SQL> INSERT INTO publication (
+  2      pubid,
+  3      title
+  4  ) VALUES (
+  5      '8370198',
+  6      'The Black Hole'
+  7  );
+
+1 row created.
+
+Commit complete.
+
+SQL> INSERT INTO publication (
+  2      pubid,
+  3      title
+  4  ) VALUES (
+  5      'DLV23-09k',
+  6      'Introduction To Databases'
+  7  );
+
+1 row created.
+
+Commit complete.
+
+SQL> INSERT INTO publication (
+  2      pubid,
+  3      title
+  4  ) VALUES (
+  5      'PRC991k',
+  6      'Whispers Of Forgotten Empires Unearthing Lost Civilizations'
+  7  );
+
+1 row created.
+
+Commit complete.
+
+SQL> INSERT INTO publication (
+  2      pubid,
+  3      title
+  4  ) VALUES (
+  5      'CAPD200',
+  6      'The Augmented Gardener Cultivating Beauty In A DigitalAge'
+  7  );
+
+1 row created.
+
+Commit complete.
+
+SQL> SPOOL OFF
+

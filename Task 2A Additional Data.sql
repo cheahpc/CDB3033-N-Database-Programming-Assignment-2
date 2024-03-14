@@ -1,3 +1,11 @@
+SPOOL 'Task 2A Additional Data Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
 INSERT INTO publication (
     pubid,
     title
@@ -37,3 +45,5 @@ INSERT INTO publication (
     'CAPD200',
     'The Augmented Gardener Cultivating Beauty In A DigitalAge'
 );
+
+SPOOL OFF

@@ -1,0 +1,365 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE print_publication(
+  2      p_author_name IN VARCHAR2
+  3  ) AS
+  4   -- additional cursor for wrote using aorder
+  5      CURSOR c_wrote_aoder(
+  6          p_pubid CHAR,
+  7          p_aoder NUMBER
+  8      ) IS
+  9      SELECT
+  10          *
+  11      FROM
+  12          wrote
+  13      WHERE
+  14          pubid = p_pubid AND
+  15          aorder = p_aoder;
+  16   -- additional cursor for wrote using pubid
+  17      CURSOR c_wrote_pubid(
+  18          p_pubid CHAR
+  19      ) IS
+  20      SELECT
+  21          *
+  22      FROM
+  23          wrote
+  24      WHERE
+  25          pubid = p_pubid;
+  26   -- additional cursor for author using aid
+  27      CURSOR c_author_aid(
+  28          p_aid NUMBER
+  29      ) IS
+  30      SELECT
+  31          *
+  32      FROM
+  33          author
+  34      WHERE
+  35          aid = p_aid;
+  36   -- 1st cursor - to retrieve author details
+  37      CURSOR c_author IS
+  38      SELECT
+  39          *
+  40      FROM
+  41          author
+  42      WHERE
+  43          name = p_author_name;
+  44   -- 2nd cursor - to retrieve what author has wrote
+  45      CURSOR c_wrote(
+  46          p_aid NUMBER
+  47      ) IS
+  48      SELECT
+  49          *
+  50      FROM
+  51          wrote
+  52      WHERE
+  53          aid = p_aid;
+  54   --  3rd cursor - to retrieve publication details
+  55      CURSOR c_publications(
+  56          p_pubid CHAR
+  57      ) IS
+  58      SELECT
+  59          *
+  60      FROM
+  61          publication
+  62      WHERE
+  63          pubid = p_pubid;
+  64   -- 4th cursor - book
+  65      CURSOR c_book(
+  66          p_pubid CHAR
+  67      ) IS
+  68      SELECT
+  69          *
+  70      FROM
+  71          book
+  72      WHERE
+  73          pubid = p_pubid;
+  74   -- 5th cursor - journal
+  75      CURSOR c_journal(
+  76          p_pubid CHAR
+  77      ) IS
+  78      SELECT
+  79          *
+  80      FROM
+  81          journal
+  82      WHERE
+  83          pubid = p_pubid;
+  84   -- 6th cursor - proceedings
+  85      CURSOR c_proceedings(
+  86          p_pubid CHAR
+  87      ) IS
+  88      SELECT
+  89          *
+  90      FROM
+  91          proceedings
+  92      WHERE
+  93          pubid = p_pubid;
+  94   -- 7th cursor - article
+  95      CURSOR c_article(
+  96          p_pubid CHAR
+  97      ) IS
+  98      SELECT
+  99          *
+  100      FROM
+  101          article
+  102      WHERE
+  103          pubid = p_pubid;
+  104   -- define table type, for sorting year purpose
+  105      TYPE item_type IS RECORD(
+  106          pub_id VARCHAR2(50),
+  107          pub_tittle VARCHAR2(500),
+  108          pub_year INTEGER
+  109      );
+  110      TYPE pub_array_type IS
+  111          TABLE OF item_type;
+  112   -- variable
+  113      v_pub_array            pub_array_type:=pub_array_type();
+  114      v_proceedings_count    INTEGER := 0;
+  115      v_journal_count        INTEGER := 0;
+  116      v_article_count        INTEGER := 0;
+  117      v_book_count           INTEGER := 0;
+  118      v_total_count          INTEGER := 0;
+  119      v_author_count         INTEGER := 0;
+  120      v_article_author_count INTEGER := 0;
+  121      v_article_author_name  VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
+  122      v_author_name          VARCHAR2(500); -- assume 50 char for 1 author, accomodate up to 10 authors
+  123      v_temp_id              VARCHAR2(50); -- for sorting purpose
+  124      v_temp_pub_title       VARCHAR2(500); -- for sorting purpose
+  125      v_temp_year            INTEGER; -- for sorting purpose
+  126      v_publication_count    INTEGER;
+  127   -- declare custom exceptions
+  128      ex_invalid_author exception;
+  129      ex_author_not_exist exception;
+  130      ex_no_publications exception;
+  131  BEGIN
+  132   -- step 0: check if author name is null
+  133      IF p_author_name IS NULL THEN
+  134          RAISE ex_invalid_author;
+  135      END IF;
+  136   -- step 0.1: check if author name exists
+  137      FOR v_c_author IN c_author LOOP
+  138          v_author_count := v_author_count + 1;
+  139      END LOOP;
+  140
+  141      IF v_author_count = 0 THEN
+  142          RAISE ex_author_not_exist;
+  143      END IF;
+  144   -- reset the author count
+  145      v_author_count := 0;
+  146   -- step 0.2: check if author has any publications
+  147      FOR v_c_author IN c_author LOOP
+  148          v_publication_count:=0;
+  149          FOR v_pubcount IN c_wrote(v_c_author.aid) LOOP
+  150              v_publication_count := v_publication_count + 1;
+  151          END LOOP;
+  152
+  153          IF v_publication_count = 0 THEN
+  154              RAISE ex_no_publications;
+  155          END IF;
+  156      END LOOP;
+  157   -- #if author exist and has publications, then proceed to find the publication details#
+  158   -- step 1: get author's id given author name
+  159      FOR v_c_author IN c_author LOOP
+  160   -- step 2: using author id, get pubid, from wrote (aid,pubid,aorder)
+  161          FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
+  162              FOR v_c_publications IN c_publications(v_c_wrote.pubid) LOOP
+  163   -- step 2.1: using pubid, get publication year, tittle  from {book, journal, proceedings}
+  164                  FOR v_book IN c_book(v_c_wrote.pubid) LOOP
+  165                      v_pub_array.extend(1);
+  166                      v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
+  167                      v_pub_array(v_pub_array.last).pub_tittle := v_c_publications.title;
+  168                      v_pub_array(v_pub_array.last).pub_year := v_book.year;
+  169                      v_book_count := v_book_count + 1;
+  170                  END LOOP;
+  171
+  172                  FOR v_journal IN c_journal(v_c_wrote.pubid) LOOP
+  173                      v_pub_array.extend(1);
+  174                      v_pub_array(v_pub_array.last).pub_tittle := v_c_publications.title;
+  175                      v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
+  176                      v_pub_array(v_pub_array.last).pub_year := v_journal.year;
+  177                      v_journal_count := v_journal_count + 1;
+  178                  END LOOP;
+  179
+  180                  FOR v_proceedings IN c_proceedings(v_c_wrote.pubid) LOOP
+  181                      v_pub_array.extend(1);
+  182                      v_pub_array(v_pub_array.last).pub_tittle := v_c_publications.title;
+  183                      v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
+  184                      v_pub_array(v_pub_array.last).pub_year := v_proceedings.year;
+  185                      v_proceedings_count := v_proceedings_count + 1;
+  186                  END LOOP;
+  187              END LOOP;
+  188          END LOOP;
+  189   -- step 2.2: sort the array base on year (bubble sort)
+  190          FOR i IN 1..v_pub_array.count-1 LOOP
+  191              FOR j IN 1..v_pub_array.count-i LOOP
+  192                  IF v_pub_array(j).pub_year > v_pub_array(j+1).pub_year THEN
+  193                      v_temp_id := v_pub_array(j).pub_id;
+  194                      v_temp_pub_title := v_pub_array(j).pub_tittle;
+  195                      v_temp_year := v_pub_array(j).pub_year;
+  196                      v_pub_array(j).pub_id := v_pub_array(j+1).pub_id;
+  197                      v_pub_array(j).pub_tittle := v_pub_array(j+1).pub_tittle;
+  198                      v_pub_array(j).pub_year := v_pub_array(j+1).pub_year;
+  199                      v_pub_array(j+1).pub_id := v_temp_id;
+  200                      v_pub_array(j+1).pub_tittle := v_temp_pub_title;
+  201                      v_pub_array(j+1).pub_year := v_temp_year;
+  202                  END IF;
+  203              END LOOP;
+  204          END LOOP;
+  205   -- step 2.3: add articles pubid to the array
+  206          FOR v_c_wrote IN c_wrote(v_c_author.aid) LOOP
+  207              FOR v_c_publications IN c_publications(v_c_wrote.pubid) LOOP
+  208                  FOR v_article IN c_article(v_c_wrote.pubid) LOOP
+  209                      v_pub_array.extend(1);
+  210                      v_pub_array(v_pub_array.last).pub_id := v_c_wrote.pubid;
+  211                      v_pub_array(v_pub_array.last).pub_tittle := v_c_publications.title;
+  212                      v_pub_array(v_pub_array.last).pub_year := 0;
+  213                      v_article_count := v_article_count + 1;
+  214                  END LOOP;
+  215              END LOOP;
+  216          END LOOP;
+  217   -- step 2.4: update total publication count
+  218          v_total_count := v_pub_array.count;
+  219   -- step 3: using pubid from the sorted array, get author's name for each publication according to aorder
+  220          FOR v_pub_array_i IN 1..v_pub_array.count LOOP
+  221   -- step 3.1: get author count for each publication
+  222              FOR v_each IN c_wrote_pubid(v_pub_array(v_pub_array_i).pub_id) LOOP
+  223                  v_author_count := v_author_count + 1;
+  224              END LOOP;
+  225   -- step 3.2: get author's aid using v_author_no as aorder
+  226              FOR v_author_no IN 1..v_author_count LOOP
+  227                  FOR v_c_wrote_aoder IN c_wrote_aoder(v_pub_array(v_pub_array_i).pub_id, v_author_no) LOOP
+  228   -- step 3.4: using aid from aorder, get author's name
+  229                      FOR v_c_author_aid IN c_author_aid(v_c_wrote_aoder.aid) LOOP
+  230                          IF v_author_name IS NULL THEN
+  231                              v_author_name := v_c_author_aid.name;
+  232                          ELSE
+  233                              v_author_name := v_author_name || ', ' || v_c_author_aid.name;
+  234                          END IF;
+  235                      END LOOP;
+  236                  END LOOP;
+  237              END LOOP;
+  238   -- step 4: using pubid from the sorted array, get publication details from {book, journal, proceedings, article}
+  239              dbms_output.put_line('==================== publication no: '|| v_pub_array_i || ' ====================');
+  240              dbms_output.put_line('+ pubid: ' || v_pub_array(v_pub_array_i).pub_id);
+  241              FOR v_c_book IN c_book(v_pub_array(v_pub_array_i).pub_id) LOOP
+  242                  dbms_output.put_line('+ type: ' || 'book');
+  243                  dbms_output.put_line('+ author: ' || v_author_name);
+  244                  dbms_output.put_line('+ title: ' || v_pub_array(v_pub_array_i).pub_tittle);
+  245                  dbms_output.put_line('==================== details');
+  246                  dbms_output.put_line('++  publisher: ' || v_c_book.publisher);
+  247                  dbms_output.put_line('++  year: ' || v_c_book.year);
+  248              END LOOP;
+  249
+  250              FOR v_c_journal IN c_journal(v_pub_array(v_pub_array_i).pub_id) LOOP
+  251                  dbms_output.put_line('+ type: ' || 'journal');
+  252                  dbms_output.put_line('+ author: ' || v_author_name);
+  253                  dbms_output.put_line('+ title: ' || v_pub_array(v_pub_array_i).pub_tittle);
+  254                  dbms_output.put_line('==================== details');
+  255                  dbms_output.put_line('++  volume: ' || v_c_journal.volume);
+  256                  dbms_output.put_line('++  number: ' || v_c_journal.num);
+  257                  dbms_output.put_line('++  year: ' || v_c_journal.year);
+  258              END LOOP;
+  259
+  260              FOR v_c_proceedings IN c_proceedings(v_pub_array(v_pub_array_i).pub_id) LOOP
+  261                  dbms_output.put_line('+ type: ' || 'proceedings');
+  262                  dbms_output.put_line('+ author: ' || v_author_name);
+  263                  dbms_output.put_line('+ title: ' || v_pub_array(v_pub_array_i).pub_tittle);
+  264                  dbms_output.put_line('==================== details');
+  265                  dbms_output.put_line('++  year: ' || v_c_proceedings.year);
+  266              END LOOP;
+  267
+  268              FOR v_c_article IN c_article(v_pub_array(v_pub_array_i).pub_id) LOOP
+  269                  dbms_output.put_line('+ type: ' || 'article');
+  270                  dbms_output.put_line('+ author: ' || v_author_name);
+  271                  dbms_output.put_line('+ title: ' || v_pub_array(v_pub_array_i).pub_tittle);
+  272                  dbms_output.put_line('==================== details');
+  273                  dbms_output.put_line('++  appearsin: ' || v_c_article.appearsin);
+  274                  dbms_output.put_line('++  startpage: ' || v_c_article.startpage);
+  275                  dbms_output.put_line('++  endpage: ' || v_c_article.endpage);
+  276                  dbms_output.put_line('+++++++++++++++ appears in - details');
+  277   -- step 5: get relevant details for article
+  278   --  step 5.1: get author count for each article
+  279                  FOR v_each IN c_wrote_pubid(v_c_article.appearsin) LOOP
+  280                      v_article_author_count := v_article_author_count + 1;
+  281                  END LOOP;
+  282   -- step 5.2: get author's aid using v_author_no as aorder
+  283                  FOR v_author_no IN 1..v_article_author_count LOOP
+  284                      FOR v_c_wrote_aoder IN c_wrote_aoder(v_c_article.appearsin, v_author_no) LOOP
+  285   -- step 5.4: using aid from aorder, get author's name
+  286                          FOR v_c_author_aid IN c_author_aid(v_c_wrote_aoder.aid) LOOP
+  287                              IF v_article_author_name IS NULL THEN
+  288                                  v_article_author_name := v_c_author_aid.name;
+  289                              ELSE
+  290                                  v_article_author_name := v_article_author_name || ', ' || v_c_author_aid.name;
+  291                              END IF;
+  292                          END LOOP;
+  293                      END LOOP;
+  294                  END LOOP;
+  295   -- step 5.5: print relevant details for the article's appearsin {book, journal, proceedings}
+  296                  dbms_output.put_line('pubid a.k.a.(appearsin): ' || v_c_article.appearsin);
+  297                  FOR v_article_publications IN c_publications(v_c_article.appearsin) LOOP
+  298                      FOR v_book IN c_book(v_c_article.appearsin) LOOP
+  299                          dbms_output.put_line('+++   type: ' || 'book');
+  300                          dbms_output.put_line('+++   author: ' || v_article_author_name);
+  301                          dbms_output.put_line('+++   title: ' || v_article_publications.title);
+  302                          dbms_output.put_line('++++++++++');
+  303                          dbms_output.put_line('++++    publisher: ' || v_book.publisher);
+  304                          dbms_output.put_line('++++    year: ' || v_book.year);
+  305                      END LOOP;
+  306
+  307                      FOR v_journal IN c_journal(v_c_article.appearsin) LOOP
+  308                          dbms_output.put_line('+++   type: ' || 'journal');
+  309                          dbms_output.put_line('+++   author: ' || v_article_author_name);
+  310                          dbms_output.put_line('+++   title: ' || v_article_publications.title);
+  311                          dbms_output.put_line('++++++++++');
+  312                          dbms_output.put_line('++++    volume: ' || v_journal.volume);
+  313                          dbms_output.put_line('++++    number: ' || v_journal.num);
+  314                          dbms_output.put_line('++++    year: ' || v_journal.year);
+  315                      END LOOP;
+  316
+  317                      FOR v_proceedings IN c_proceedings(v_c_article.appearsin) LOOP
+  318                          dbms_output.put_line('+++   type: ' || 'proceedings');
+  319                          dbms_output.put_line('+++   author: ' || v_article_author_name);
+  320                          dbms_output.put_line('+++   title: ' || v_article_publications.title);
+  321                          dbms_output.put_line('++++++++++');
+  322                          dbms_output.put_line('++++    year: ' || v_proceedings.year);
+  323                      END LOOP;
+  324                  END LOOP;
+  325   -- reset the article author count and article author name variable after each publication
+  326                  dbms_output.put_line(' ');
+  327                  v_article_author_count := 0;
+  328                  v_article_author_name := NULL;
+  329              END LOOP;
+  330   -- reset the author count and author name variable after each publication
+  331              dbms_output.put_line(' ');
+  332              dbms_output.put_line(' ');
+  333              v_author_count := 0;
+  334              v_author_name := NULL;
+  335          END LOOP;
+  336      END LOOP;
+  337   -- print the summary page
+  338      dbms_output.put_line('-------------------- summary --------------------');
+  339      dbms_output.put_line('proceedings: ' || v_proceedings_count);
+  340      dbms_output.put_line('journal: ' || v_journal_count);
+  341      dbms_output.put_line('article: ' || v_article_count);
+  342      dbms_output.put_line('book: ' || v_book_count);
+  343      dbms_output.put_line('total publication: ' || v_total_count);
+  344   -- exception handling
+  345  EXCEPTION
+  346      WHEN ex_invalid_author THEN
+  347          dbms_output.put_line('error: invalid author name.');
+  348      WHEN ex_author_not_exist THEN
+  349          dbms_output.put_line('error: author name does not exist.');
+  350      WHEN ex_no_publications THEN
+  351          dbms_output.put_line('error: no publications found for this author.');
+  352      WHEN OTHERS THEN
+  353          dbms_output.put_line('unexpected error: ' || sqlerrm);
+  354  END;
+  355  /
+
+PROCEDURE created.
+
+Commit complete.
+
+SQL> SPOOL OFF
+

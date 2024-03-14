@@ -1,0 +1,24 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> -- drop the table if it exists
+SQL> DROP TABLE publication_master;
+
+TABLE dropped.
+
+SQL> -- create the table
+SQL> CREATE TABLE publication_master (
+  2      pubid CHAR(10) NOT NULL,
+  3      type VARCHAR2(50) NOT NULL,
+  4      detail1 VARCHAR2(100) NOT NULL,
+  5      detail2 VARCHAR2(100),
+  6      detail3 VARCHAR2(100),
+  7      detail4 VARCHAR2(100),
+  8      PRIMARY KEY (pubid),
+  9      FOREIGN KEY (pubid) REFERENCES publication (pubid)
+  10  );
+
+TABLE created.
+
+SQL> SPOOL OFF
+

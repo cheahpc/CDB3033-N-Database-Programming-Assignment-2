@@ -1,3 +1,11 @@
+SPOOL 'Task 2A Main 2 Merge Publication Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
 CREATE OR REPLACE PROCEDURE merge_publication AS
  -- cursor 1 publication
     CURSOR c_publications IS
@@ -201,7 +209,6 @@ BEGIN
                         TRIM(v_journal.num),
                         TRIM(v_journal.year)
                     );
-                    total_journal_success := total_journal_success + 1;
                     dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
                     total_journal_success := total_journal_success + 1;
                 EXCEPTION
@@ -375,3 +382,5 @@ EXCEPTION
         ROLLBACK;
 END;
 /
+
+SPOOL OFF

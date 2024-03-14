@@ -1,0 +1,386 @@
+SQL> SET ECHO ON
+SQL> SET LINESIZE 1000
+SQL> SET SERVEROUTPUT ON
+SQL> CREATE OR REPLACE PROCEDURE merge_publication AS
+  2   -- cursor 1 publication
+  3      CURSOR c_publications IS
+  4      SELECT
+  5          *
+  6      FROM
+  7          publication;
+  8   -- cursor 2 book
+  9      CURSOR c_book(
+  10          p_pubid CHAR
+  11      ) IS
+  12      SELECT
+  13          *
+  14      FROM
+  15          book
+  16      WHERE
+  17          pubid = p_pubid;
+  18   -- cursor 3 journal
+  19      CURSOR journal(
+  20          p_pubid CHAR
+  21      ) IS
+  22      SELECT
+  23          *
+  24      FROM
+  25          journal
+  26      WHERE
+  27          pubid = p_pubid;
+  28   -- cursor 4 proceedings
+  29      CURSOR proceedings(
+  30          p_pubid CHAR
+  31      ) IS
+  32      SELECT
+  33          *
+  34      FROM
+  35          proceedings
+  36      WHERE
+  37          pubid = p_pubid;
+  38   -- cursor 5 article
+  39      CURSOR article(
+  40          p_pubid CHAR
+  41      ) IS
+  42      SELECT
+  43          *
+  44      FROM
+  45          article
+  46      WHERE
+  47          pubid = p_pubid;
+  48   -- cursor 6 publication master
+  49      CURSOR c_publication_master(
+  50          p_pubid CHAR
+  51      ) IS
+  52      SELECT
+  53          pubid
+  54      FROM
+  55          publication_master
+  56      WHERE
+  57          pubid = p_pubid;
+  58   -- varialbe
+  59      total_book                NUMBER := 0;
+  60      total_book_success        NUMBER := 0;
+  61      total_book_failed         NUMBER := 0;
+  62      total_journal             NUMBER := 0;
+  63      total_journal_success     NUMBER := 0;
+  64      total_journal_failed      NUMBER := 0;
+  65      total_proceedings         NUMBER := 0;
+  66      total_proceedings_success NUMBER := 0;
+  67      total_proceedings_failed  NUMBER := 0;
+  68      total_article             NUMBER := 0;
+  69      total_article_success     NUMBER := 0;
+  70      total_article_failed      NUMBER := 0;
+  71      total_succssful_operation NUMBER := 0;
+  72      total_failed_operation    NUMBER := 0;
+  73      total_detail_not_found    NUMBER := 0;
+  74      total_operation           NUMBER := 0;
+  75      record_existed            BOOLEAN := false;
+  76      detail_found              BOOLEAN := false;
+  77  BEGIN
+  78      DBMS_OUTPUT.PUT_LINE(' - - - merge operation started - - - ');
+  79      FOR v_publications IN c_publications LOOP
+  80          detail_found := false;
+  81   -- loop 1: book
+  82          FOR v_book IN c_book(v_publications.pubid) LOOP
+  83              detail_found:= true;
+  84              record_existed := false;
+  85              FOR v_publication_master IN c_publication_master(v_publications.pubid) LOOP
+  86                  record_existed := true; -- check if record exis.
+  87              END LOOP;
+  88
+  89              IF record_existed THEN
+  90   -- loop 1.1 update, if record existed
+  91                  BEGIN
+  92                      UPDATE publication_master
+  93                      SET
+  94                          type = 'book',
+  95                          detail1 = TRIM(
+  96                              v_publications.title
+  97                          ),
+  98                          detail2 = TRIM(
+  99                              v_book.publisher
+  100                          ),
+  101                          detail3 = TRIM(
+  102                              v_book.year
+  103                          ),
+  104                          detail4 = NULL
+  105                      WHERE
+  106                          pubid = v_publications.pubid;
+  107                      dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
+  108                      total_book_success := total_book_success + 1;
+  109                  EXCEPTION
+  110                      WHEN OTHERS THEN
+  111                          dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title);
+  112                          dbms_output.put_line('error code: ' || sqlcode);
+  113                          dbms_output.put_line('error message: ' || sqlerrm);
+  114                          dbms_output.put_line('');
+  115                          total_book_failed := total_book_failed + 1;
+  116                          ROLLBACK;
+  117                  END;
+  118              ELSE
+  119   -- loop 1.2 insert, if record is new
+  120                  BEGIN
+  121                      INSERT INTO publication_master(
+  122                          pubid,
+  123                          type,
+  124                          detail1,
+  125                          detail2,
+  126                          detail3,
+  127                          detail4
+  128                      ) VALUES (
+  129                          TRIM(v_publications.pubid),
+  130                          'book',
+  131                          TRIM(v_publications.title),
+  132                          TRIM(v_book.publisher),
+  133                          TRIM(v_book.year),
+  134                          NULL
+  135                      );
+  136                      dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
+  137                      total_book_success := total_book_success + 1;
+  138                  EXCEPTION
+  139                      WHEN OTHERS THEN
+  140                          dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: book' || '  |  title: ' || v_publications.title );
+  141                          dbms_output.put_line('error code: ' || sqlcode);
+  142                          dbms_output.put_line('error message: ' || sqlerrm);
+  143                          total_book_failed := total_book_failed + 1;
+  144                          ROLLBACK;
+  145                  END;
+  146              END IF;
+  147          END LOOP;
+  148   -- loop 2: journal
+  149          FOR v_journal IN journal(v_publications.pubid) LOOP
+  150              detail_found:= true;
+  151              record_existed := false;
+  152              FOR v_publication_master IN c_publication_master(v_publications.pubid) LOOP
+  153                  record_existed := true;
+  154              END LOOP;
+  155
+  156              IF record_existed THEN
+  157   -- loop 2.1: update, if record existed
+  158                  BEGIN
+  159                      UPDATE publication_master
+  160                      SET
+  161                          type = 'journal',
+  162                          detail1 = TRIM(
+  163                              v_publications.title
+  164                          ),
+  165                          detail2 = TRIM(
+  166                              v_journal.volume
+  167                          ),
+  168                          detail3 = TRIM(
+  169                              v_journal.num
+  170                          ),
+  171                          detail4 = TRIM(
+  172                              v_journal.year
+  173                          )
+  174                      WHERE
+  175                          pubid = v_publications.pubid;
+  176                      dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
+  177                      total_journal_success := total_journal_success + 1;
+  178                  EXCEPTION
+  179                      WHEN OTHERS THEN
+  180                          dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
+  181                          dbms_output.put_line('error code: ' || sqlcode);
+  182                          dbms_output.put_line('error message: ' || sqlerrm);
+  183                          total_journal_failed := total_journal_failed + 1;
+  184                          ROLLBACK;
+  185                  END;
+  186              ELSE
+  187   -- loop 2.2: insert, if record is new
+  188                  BEGIN
+  189                      INSERT INTO publication_master(
+  190                          pubid,
+  191                          type,
+  192                          detail1,
+  193                          detail2,
+  194                          detail3,
+  195                          detail4
+  196                      ) VALUES (
+  197                          TRIM(v_publications.pubid),
+  198                          'journal',
+  199                          TRIM(v_publications.title),
+  200                          TRIM(v_journal.volume),
+  201                          TRIM(v_journal.num),
+  202                          TRIM(v_journal.year)
+  203                      );
+  204                      dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
+  205                      total_journal_success := total_journal_success + 1;
+  206                  EXCEPTION
+  207                      WHEN OTHERS THEN
+  208                          dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: journal' || '  |  title: ' || v_publications.title);
+  209                          dbms_output.put_line('error code: ' || sqlcode);
+  210                          dbms_output.put_line('error message: ' || sqlerrm);
+  211                          total_journal_failed := total_journal_failed + 1;
+  212                          ROLLBACK;
+  213                  END;
+  214              END IF;
+  215          END LOOP;
+  216   -- loop 3: proceedings
+  217          FOR v_proceedings IN proceedings(v_publications.pubid) LOOP
+  218              detail_found:= true;
+  219              record_existed := false;
+  220              FOR v_publication_master IN c_publication_master(v_publications.pubid) LOOP
+  221                  record_existed := true;
+  222              END LOOP;
+  223
+  224              IF record_existed THEN
+  225   -- loop 3.1: update, if record existed
+  226                  BEGIN
+  227                      UPDATE publication_master
+  228                      SET
+  229                          type = 'proceedings',
+  230                          detail1 = TRIM(
+  231                              v_publications.title
+  232                          ),
+  233                          detail2 = TRIM(
+  234                              v_proceedings.year
+  235                          ),
+  236                          detail3 = NULL,
+  237                          detail4 = NULL
+  238                      WHERE
+  239                          pubid = v_publications.pubid;
+  240                      dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title );
+  241                      total_proceedings_success := total_proceedings_success + 1;
+  242                  EXCEPTION
+  243                      WHEN OTHERS THEN
+  244                          dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title);
+  245                          dbms_output.put_line('error code: ' || sqlcode);
+  246                          dbms_output.put_line('error message: ' || sqlerrm);
+  247                          total_proceedings_failed := total_proceedings_failed + 1;
+  248                          ROLLBACK;
+  249                  END;
+  250              ELSE
+  251   -- loop 3.2: insert, if record is new
+  252                  BEGIN
+  253                      INSERT INTO publication_master(
+  254                          pubid,
+  255                          type,
+  256                          detail1,
+  257                          detail2,
+  258                          detail3,
+  259                          detail4
+  260                      ) VALUES (
+  261                          TRIM(v_publications.pubid),
+  262                          'proceedings',
+  263                          TRIM(v_publications.title),
+  264                          TRIM(v_proceedings.year),
+  265                          NULL,
+  266                          NULL
+  267                      );
+  268                      dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title );
+  269                      total_proceedings_success := total_proceedings_success + 1;
+  270                  EXCEPTION
+  271                      WHEN OTHERS THEN
+  272                          dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: proceedings' || '  |  title: ' || v_publications.title );
+  273                          dbms_output.put_line('error code: ' || sqlcode);
+  274                          dbms_output.put_line('error message: ' || sqlerrm);
+  275                          total_proceedings_failed := total_proceedings_failed + 1;
+  276                          ROLLBACK;
+  277                  END;
+  278              END IF;
+  279          END LOOP;
+  280   -- loop 4: article
+  281          FOR v_article IN article(v_publications.pubid) LOOP
+  282              detail_found:= true;
+  283              record_existed := false;
+  284              FOR v_publication_master IN c_publication_master(v_publications.pubid) LOOP
+  285                  record_existed := true;
+  286              END LOOP;
+  287
+  288              IF record_existed THEN
+  289   -- loop 4.1: update, if record existed
+  290                  BEGIN
+  291                      UPDATE publication_master
+  292                      SET
+  293                          type = 'article',
+  294                          detail1 = TRIM(
+  295                              v_publications.title
+  296                          ),
+  297                          detail2 = TRIM(
+  298                              v_article.appearsin
+  299                          ),
+  300                          detail3 = TRIM(
+  301                              v_article.startpage
+  302                          ),
+  303                          detail4 = TRIM(
+  304                              v_article.endpage
+  305                          )
+  306                      WHERE
+  307                          pubid = v_publications.pubid;
+  308                      dbms_output.put_line('operation "update" successful. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
+  309                      total_article_success := total_article_success + 1;
+  310                  EXCEPTION
+  311                      WHEN OTHERS THEN
+  312                          dbms_output.put_line('operation "update" failed. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title);
+  313                          dbms_output.put_line('error code: ' || sqlcode);
+  314                          dbms_output.put_line('error message: ' || sqlerrm);
+  315                          total_article_failed := total_article_failed + 1;
+  316                          ROLLBACK;
+  317                  END;
+  318              ELSE
+  319   -- loop 4.2: insert, if record is new
+  320                  BEGIN
+  321                      INSERT INTO publication_master(
+  322                          pubid,
+  323                          type,
+  324                          detail1,
+  325                          detail2,
+  326                          detail3,
+  327                          detail4
+  328                      ) VALUES (
+  329                          TRIM(v_publications.pubid),
+  330                          'article',
+  331                          TRIM(v_publications.title),
+  332                          TRIM(v_article.appearsin),
+  333                          TRIM(v_article.startpage),
+  334                          TRIM(v_article.endpage)
+  335                      );
+  336                      dbms_output.put_line('operation "insert" successful. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
+  337                      total_article_success := total_article_success + 1;
+  338                  EXCEPTION
+  339                      WHEN OTHERS THEN
+  340                          dbms_output.put_line('operation "insert" failed. pubid: ' || v_publications.pubid || '  |  type: article' || '  |  title: ' || v_publications.title );
+  341                          dbms_output.put_line('error code: ' || sqlcode);
+  342                          dbms_output.put_line('error message: ' || sqlerrm);
+  343                          total_article_failed := total_article_failed + 1;
+  344                          ROLLBACK;
+  345                  END;
+  346              END IF;
+  347          END LOOP;
+  348   -- last if publication id not exist in {book, journal, proceedings, article} then count error
+  349          IF NOT detail_found THEN
+  350              dbms_output.put_line('error. unable to find any records in {book, journal, proceeding, article}. pubid: '|| v_publications.pubid || '  |  title: ' || v_publications.title);
+  351              total_detail_not_found:= total_detail_not_found + 1;
+  352          END IF;
+  353      END LOOP;
+  354   -- print summary
+  355      total_operation := total_book_success + total_book_failed + total_journal_success + total_journal_failed + total_proceedings_success + total_proceedings_failed + total_article_success + total_article_failed;
+  356      total_book := total_book_success + total_book_failed;
+  357      total_journal := total_journal_success + total_journal_failed;
+  358      total_proceedings := total_proceedings_success + total_proceedings_failed;
+  359      total_article := total_article_success + total_article_failed;
+  360      DBMS_OUTPUT.PUT_LINE(' - - - merge operation completed - - - ');
+  361      DBMS_OUTPUT.PUT_LINE(' ');
+  362      dbms_output.put_line('-------------------- merge operation summary --------------------');
+  363      dbms_output.put_line('- total operation: ' || total_operation);
+  364      dbms_output.put_line('- total missing detail: ' || total_detail_not_found);
+  365      dbms_output.put_line('++ total opreation on book: ' || total_book || '  |  successful: ' || total_book_success || '  |  failed: ' || total_book_failed);
+  366      dbms_output.put_line('++ total opreation on journal: ' || total_journal || '  |  successful: ' || total_journal_success || '  |  failed: ' || total_journal_failed);
+  367      dbms_output.put_line('++ total opreation on proceeding: ' || total_proceedings || '  |  successful: ' || total_proceedings_success || '  |  failed: ' || total_proceedings_failed);
+  368      dbms_output.put_line('++ total opreation on article: ' || total_article || '  |  successful: ' || total_article_success || '  |  failed: ' || total_article_failed);
+  369  EXCEPTION
+  370      WHEN OTHERS THEN
+  371          dbms_output.put_line('merge opreation failed. contact admin for assistant.');
+  372          dbms_output.put_line('error code: ' || sqlcode);
+  373          dbms_output.put_line('error message: ' || sqlerrm);
+  374          ROLLBACK;
+  375  END;
+  376  /
+
+PROCEDURE created.
+
+Commit complete.
+
+SQL> SPOOL OFF
+

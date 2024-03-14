@@ -1,3 +1,11 @@
+SPOOL 'Task 2A Display Publication Master Spool.txt'
+
+SET ECHO ON
+
+SET LINESIZE 1000
+
+SET SERVEROUTPUT ON
+
 CREATE OR REPLACE PROCEDURE display_master_publication AS
     CURSOR c_master_publication IS
     SELECT
@@ -51,3 +59,6 @@ EXCEPTION
         dbms_output.put_line('Error code: ' || SQLCODE);
         dbms_output.put_line('Error message: ' || SQLERRM);
 END;
+/
+
+SPOOL OFF
